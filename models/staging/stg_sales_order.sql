@@ -1,0 +1,43 @@
+{{ config(
+    materialized='incremental',
+    unique_key='SALES_ORDER_ID',
+    schema='SILVER'
+) }}
+
+WITH cleaned AS (
+
+    SELECT
+        TRIM(VBELN) AS SALES_ORDER_ID,
+        ERDAT AS ORDER_DATE,
+        TRIM(KUNNR) AS CUSTOMER_ID,
+        TRIM(VKORG) AS SALES_ORGANIZATION,
+        TRIM(VTWEG) AS DISTRIBUTION_CHANNEL,
+        TRIM(SPART) AS DIVISION,
+        TRIM(WAERK) AS CURRENCY,
+        TRIM(AUART) AS SALES_ORDER_TYPE,
+
+        ROW_NUMBER() OVER (
+            PARTITION BY TRIM(VBELN)
+            ORDER BY ERDAT DESC
+        ) AS RN
+
+    FROM {{ source('bronze', 'VBAK_SALES_ORDER_RAW') }}
+
+    WHERE NULLIF(TRIM(VBELN), '') IS NOT NULL
+      AND NULLIF(TRIM(KUNNR), '') IS NOT NULL
+      AND ERDAT IS NOT NULL
+)
+
+SELECT
+    SALES_ORDER_ID,
+    ORDER_DATE,
+    CUSTOMER_ID,
+    SALES_ORGANIZATION,
+    DISTRIBUTION_CHANNEL,
+    DIVISION,
+    CURRENCY,
+    SALES_ORDER_TYPE
+
+FROM cleaned
+
+WHERE RN = 1

@@ -1,0 +1,40 @@
+{{ config(
+    materialized='incremental',
+    unique_key='MATERIAL_ID',
+    schema='SILVER'
+) }}
+
+WITH cleaned AS (
+
+    SELECT
+        TRIM(MATNR) AS MATERIAL_ID,
+        TRIM(MAKTX) AS MATERIAL_NAME,
+        TRIM(MATKL) AS MATERIAL_GROUP,
+        TRIM(MEINS) AS BASE_UOM,
+        TRIM(MTART) AS MATERIAL_TYPE,
+        TRIM(MBRSH) AS INDUSTRY_SECTOR,
+        ERDAT AS CREATED_DATE,
+
+        ROW_NUMBER() OVER (
+            PARTITION BY TRIM(MATNR)
+            ORDER BY ERDAT DESC
+        ) AS RN
+
+    FROM {{ source('bronze', 'MARA_MATERIAL_RAW') }}
+
+    WHERE NULLIF(TRIM(MATNR), '') IS NOT NULL
+      AND NULLIF(TRIM(MAKTX), '') IS NOT NULL
+)
+
+SELECT
+    MATERIAL_ID,
+    MATERIAL_NAME,
+    MATERIAL_GROUP,
+    BASE_UOM,
+    MATERIAL_TYPE,
+    INDUSTRY_SECTOR,
+    CREATED_DATE
+
+FROM cleaned
+
+WHERE RN = 1

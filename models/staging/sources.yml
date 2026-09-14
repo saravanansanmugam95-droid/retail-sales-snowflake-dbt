@@ -1,0 +1,16 @@
+
+version: 2
+
+sources:
+  - name: bronze 
+    database: RETAIL_ANALYTICS
+    schema: bronze
+
+    tables:
+      - name: KNA1_CUSTOMER_RAW
+      - name: MARA_MATERIAL_RAW
+      - name: T001W_PLANT_RAW
+      - name: VBAK_SALES_ORDER_RAW
+      - name: VBAP_SALES_ITEM_RAW
+      - name: VBRK_BILLING_RAW
+      - name: T009B_FISCAL_PERIOD_RAW

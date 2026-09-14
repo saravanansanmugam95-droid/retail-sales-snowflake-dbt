@@ -1,0 +1,11 @@
+retail_sales_dbt:
+  target: dev
+
+  outputs:
+    dev:
+      type: snowflake
+      role: SYSADMIN
+      warehouse: RETAIL_WH
+      database: RETAIL_ANALYTICS
+      schema: SILVER
+      threads: 4
